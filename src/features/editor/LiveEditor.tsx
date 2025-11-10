@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { ViewMode } from "../../enums/viewMode.enum";
 import { GraphView } from "./views/GraphView";
 import { TreeView } from "./views/TreeView";
+import useJson from "../../store/useJson"; 
 
 const StyledLiveEditor = styled.div`
   position: relative;
@@ -40,6 +41,12 @@ const View = () => {
 };
 
 const LiveEditor = () => {
+  const syncFromFile = useJson(state => state.syncFromFile); 
+
+  React.useEffect(() => {
+    syncFromFile(); 
+  }, []);
+
   return (
     <StyledLiveEditor onContextMenuCapture={e => e.preventDefault()}>
       <View />

@@ -35,7 +35,7 @@ interface GraphActions {
   setLoading: (loading: boolean) => void;
   setDirection: (direction: CanvasDirection) => void;
   setViewPort: (ref: ViewPort) => void;
-  setSelectedNode: (nodeData: NodeData) => void;
+ setSelectedNode: (nodeData: NodeData | null) => void;
   focusFirstNode: () => void;
   toggleFullscreen: (value: boolean) => void;
   zoomIn: () => void;
@@ -50,23 +50,32 @@ const useGraph = create<Graph & GraphActions>((set, get) => ({
   clearGraph: () => set({ nodes: [], edges: [], loading: false }),
   setSelectedNode: nodeData => set({ selectedNode: nodeData }),
   setGraph: (data, options) => {
-    const { nodes, edges } = parser(data ?? useJson.getState().json);
+  try {
+    const jsonString = data ?? useJson.getState().json;
+    const { nodes, edges } = parser(jsonString);
 
     if (nodes.length > SUPPORTED_LIMIT) {
       return set({
         aboveSupportedLimit: true,
-        ...options,
         loading: false,
+        ...options,
       });
     }
 
     set({
-      nodes,
-      edges,
+      nodes: [...nodes],
+      edges: [...edges],
       aboveSupportedLimit: false,
+      loading: false,
+      path: `${Date.now()}`,
       ...options,
     });
-  },
+  } catch (err) {
+    console.error("Failed to setGraph:", err);
+    set({ loading: false });
+  }
+},
+
   setDirection: (direction = "RIGHT") => {
     set({ direction });
     setTimeout(() => get().centerView(), 200);

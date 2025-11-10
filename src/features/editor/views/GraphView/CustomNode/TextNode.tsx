@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import type { CustomNodeProps } from ".";
 import useConfig from "../../../../../store/useConfig";
 import { isContentImage } from "../lib/utils/calculateNodeSize";
 import { TextRenderer } from "./TextRenderer";
+import { InlineNodeEditor } from "./InlineNodeEditor";
 import * as Styled from "./styles";
 
 const StyledTextNodeWrapper = styled.span<{ $isParent: boolean }>`
@@ -16,21 +17,19 @@ const StyledTextNodeWrapper = styled.span<{ $isParent: boolean }>`
   padding: 0 10px;
 `;
 
-const StyledImageWrapper = styled.div`
-  padding: 5px;
-`;
-
-const StyledImage = styled.img`
-  border-radius: 2px;
-  object-fit: contain;
-  background: ${({ theme }) => theme.BACKGROUND_MODIFIER_ACCENT};
-`;
-
 const Node = ({ node, x, y }: CustomNodeProps) => {
   const { text, width, height } = node;
+  const [isEditing, setIsEditing] = useState(false);
+  const [value, setValue] = useState(text[0].value);
   const imagePreviewEnabled = useConfig(state => state.imagePreviewEnabled);
   const isImage = imagePreviewEnabled && isContentImage(JSON.stringify(text[0].value));
-  const value = text[0].value;
+
+  const handleSave = (newValue: string) => {
+    setValue(newValue);
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => setIsEditing(false);
 
   return (
     <Styled.StyledForeignObject
@@ -39,21 +38,23 @@ const Node = ({ node, x, y }: CustomNodeProps) => {
       height={height}
       x={0}
       y={0}
+      onClick={() => setIsEditing(true)}
     >
       {isImage ? (
-        <StyledImageWrapper>
-          <StyledImage src={JSON.stringify(text[0].value)} width="70" height="70" loading="lazy" />
-        </StyledImageWrapper>
+        <div>Image Preview Disabled for Edit</div>
       ) : (
-        <StyledTextNodeWrapper
-          data-x={x}
-          data-y={y}
-          data-key={JSON.stringify(text)}
-          $isParent={false}
-        >
-          <Styled.StyledKey $value={value} $type={typeof text[0].value}>
-            <TextRenderer>{value}</TextRenderer>
-          </Styled.StyledKey>
+        <StyledTextNodeWrapper data-x={x} data-y={y} data-key={JSON.stringify(text)} $isParent={false}>
+          {isEditing ? (
+            <InlineNodeEditor
+              initialValue={String(value)}
+              onSave={handleSave}
+              onCancel={handleCancel}
+            />
+          ) : (
+            <Styled.StyledKey $value={value} $type={typeof value}>
+              <TextRenderer>{value}</TextRenderer>
+            </Styled.StyledKey>
+          )}
         </StyledTextNodeWrapper>
       )}
     </Styled.StyledForeignObject>

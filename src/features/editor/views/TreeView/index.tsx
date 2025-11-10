@@ -11,6 +11,7 @@ export const TreeView = () => {
 
   return (
     <JSONTree
+      key={json} 
       hideRoot
       data={JSON.parse(json)}
       valueRenderer={(valueAsString, value) => <Value {...{ valueAsString, value }} />}

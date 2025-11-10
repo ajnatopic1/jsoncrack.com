@@ -4,6 +4,7 @@ import styled from "styled-components";
 import Editor, { type EditorProps, loader, type OnMount, useMonaco } from "@monaco-editor/react";
 import useConfig from "../../store/useConfig";
 import useFile from "../../store/useFile";
+import useJson from "../../store/useJson"; 
 
 loader.config({
   paths: {
@@ -31,6 +32,13 @@ const TextEditor = () => {
   const theme = useConfig(state => (state.darkmodeEnabled ? "vs-dark" : "light"));
   const fileType = useFile(state => state.format);
 
+  const json = useJson(state => state.json);
+  React.useEffect(() => {
+    if (json && json !== contents) {
+      setContents({ contents: json, skipUpdate: true });
+    }
+  }, [json]);
+
   React.useEffect(() => {
     monaco?.languages.json.jsonDefaults.setDiagnosticsOptions({
       validate: true,
@@ -52,9 +60,9 @@ const TextEditor = () => {
     const beforeunload = (e: BeforeUnloadEvent) => {
       if (getHasChanges()) {
         const confirmationMessage =
-          "Unsaved changes, if you leave before saving  your changes will be lost";
+          "Unsaved changes, if you leave before saving your changes will be lost";
 
-        (e || window.event).returnValue = confirmationMessage; //Gecko + IE
+        (e || window.event).returnValue = confirmationMessage;
         return confirmationMessage;
       }
     };

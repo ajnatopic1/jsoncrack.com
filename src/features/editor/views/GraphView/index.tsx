@@ -15,6 +15,7 @@ import { OptionsMenu } from "./OptionsMenu";
 import { SecureInfo } from "./SecureInfo";
 import { ZoomControl } from "./ZoomControl";
 import useGraph from "./stores/useGraph";
+import useJson from "../../../../store/useJson"; // ✅ added import
 
 const StyledEditorWrapper = styled.div<{ $widget: boolean; $showRulers: boolean }>`
   width: 100%;
@@ -144,6 +145,18 @@ export const GraphView = ({ isWidget = false }: GraphProps) => {
   const gesturesEnabled = useConfig(state => state.gesturesEnabled);
   const rulersEnabled = useConfig(state => state.rulersEnabled);
   const [debouncedLoading] = useDebouncedValue(loading, 300);
+
+  const json = useJson(state => state.json);
+  const setGraph = useGraph(state => state.setGraph);
+
+  React.useEffect(() => {
+    if (!json) return;
+    try {
+      setGraph(json);
+    } catch (err) {
+      console.error("Failed to sync graph with JSON:", err);
+    }
+  }, [json, setGraph]);
 
   const callback = React.useCallback(() => {
     const canvas = document.querySelector(".jsoncrack-canvas") as HTMLDivElement | null;
